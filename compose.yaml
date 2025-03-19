@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgres:latest
+    restart: always
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USERNAME: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+
+  minio:
+    image: minio/minio:latest
+    restart: always
+    ports:
+      - "9001:9000"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASS}
+    volumes:
+      - minio_data:/data
+    command: server /data
+
+volumes:
+  minio_data:

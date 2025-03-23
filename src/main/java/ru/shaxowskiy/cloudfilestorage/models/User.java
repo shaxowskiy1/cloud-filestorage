@@ -25,7 +25,7 @@ public class User {
     private String username;
 
     @NotEmpty(message = "Password should not be empty")
-    @Size(min = 8, max = 30, message = "Password should be between 3 and 30 characters")
+    @Size(min = 8, max = 100, message = "Password should be between 8 and 30 characters")
     private String password;
 
     @NotEmpty(message = "Firstname should not be empty")

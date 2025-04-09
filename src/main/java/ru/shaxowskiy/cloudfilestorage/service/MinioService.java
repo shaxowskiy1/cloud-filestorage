@@ -2,6 +2,7 @@ package ru.shaxowskiy.cloudfilestorage.service;
 
 import io.minio.*;
 import io.minio.errors.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
 @Service
+@Slf4j
 public class MinioService implements FileStorageService, BucketStorageService, FolderStorageService {
 
     private final MinioClient minioClient;
@@ -55,18 +57,35 @@ public class MinioService implements FileStorageService, BucketStorageService, F
                     .contentType(multipartFile.getContentType())
                     .build());
         } catch (Exception e) {
+            log.error("Unsuccessful upload file");
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public FileInputStream downloadFile() {
-        return null;
+    public InputStream downloadFile(String objectName) {
+        try {
+            return minioClient.getObject(GetObjectArgs.builder()
+                    .bucket(BUCKET_NAME)
+                    .object(objectName)
+                    .build());
+        } catch (Exception e) {
+            log.error("Unsuccessful download file");
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    public void deleteFile() {
-
+    public void deleteFile(String objectName) {
+        try {
+            minioClient.removeObject(RemoveObjectArgs.builder()
+                    .bucket(BUCKET_NAME)
+                    .object(objectName)
+                    .build());
+        } catch (Exception e){
+            log.error("Failed to delete file");
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

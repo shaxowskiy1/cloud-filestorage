@@ -1,105 +1,22 @@
 package ru.shaxowskiy.cloudfilestorage.service;
 
-import io.minio.*;
-import io.minio.errors.*;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import ru.shaxowskiy.cloudfilestorage.models.User;
 
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 
-@Service
-@Slf4j
-public class MinioService implements FileStorageService, BucketStorageService, FolderStorageService {
+public interface MinioService {
+    boolean isBucketExist(String bucketName);
 
-    private final MinioClient minioClient;
-    private final String BUCKET_NAME;
+    void uploadFile(String objectName, MultipartFile multipartFile);
 
-    @Autowired
-    public MinioService(MinioClient minioClient, @Value("${minio.bucket}") String bucketName) {
-        this.minioClient = minioClient;
-        BUCKET_NAME = bucketName;
-    }
+    InputStream downloadFile(String objectName);
 
+    void deleteFile(String objectName);
 
-    @Override
-    public void createBucket(User user) {
-        try {
-            boolean found = isBucketExist(BUCKET_NAME);
-            if (!found) {
-                minioClient.makeBucket(MakeBucketArgs.builder().bucket(BUCKET_NAME).build());
-            }
-        } catch (ErrorResponseException | InsufficientDataException | InternalException | InvalidKeyException |
-                 InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException |
-                 IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    void createFolder();
 
-    private boolean isBucketExist(String bucketName) throws ErrorResponseException, InsufficientDataException, InternalException, InvalidKeyException, InvalidResponseException, IOException, NoSuchAlgorithmException, ServerException, XmlParserException {
-        return minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
-    }
+    FileInputStream downloadFolder();
 
-    @Override
-    public void uploadFile(String objectName, MultipartFile multipartFile) {
-        try (InputStream inputStream = multipartFile.getInputStream()) {
-            minioClient.putObject(PutObjectArgs.builder()
-                    .bucket(BUCKET_NAME)
-                    .object(objectName)
-                    .stream(inputStream, multipartFile.getSize(), -1)
-                    .contentType(multipartFile.getContentType())
-                    .build());
-        } catch (Exception e) {
-            log.error("Unsuccessful upload file");
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public InputStream downloadFile(String objectName) {
-        try {
-            return minioClient.getObject(GetObjectArgs.builder()
-                    .bucket(BUCKET_NAME)
-                    .object(objectName)
-                    .build());
-        } catch (Exception e) {
-            log.error("Unsuccessful download file");
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public void deleteFile(String objectName) {
-        try {
-            minioClient.removeObject(RemoveObjectArgs.builder()
-                    .bucket(BUCKET_NAME)
-                    .object(objectName)
-                    .build());
-        } catch (Exception e){
-            log.error("Failed to delete file");
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public void createFolder() {
-
-    }
-
-    @Override
-    public FileInputStream downloadFolder() {
-        return null;
-    }
-
-    @Override
-    public void deleteFolder() {
-
-    }
+    void deleteFolder();
 }

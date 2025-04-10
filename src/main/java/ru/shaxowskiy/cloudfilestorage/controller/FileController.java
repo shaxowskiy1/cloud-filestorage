@@ -7,7 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
-import ru.shaxowskiy.cloudfilestorage.service.MinioService;
+import ru.shaxowskiy.cloudfilestorage.dto.ResourceInfoDTO;
+import ru.shaxowskiy.cloudfilestorage.service.FileService;
+import ru.shaxowskiy.cloudfilestorage.service.MinioServiceImpl;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,46 +21,46 @@ import java.nio.charset.StandardCharsets;
 @RequestMapping("/resource")
 @Slf4j
 //TODO: вынести логику обработки в FileService. 1 - добавить методы обрбаотки папок.
-// Добавить path в виде requestParam до файла и парсинг пути
+// Добавить path в виде requestParam до файла и парсинг пути. Добавить encoder
 public class FileController {
 
-    private final MinioService minioService;
+    private final FileService fileService;
 
-    public FileController(MinioService minioService) {
-        this.minioService = minioService;
+    public FileController(FileService fileService) {
+        this.fileService = fileService;
     }
+
+    @GetMapping
+    public ResponseEntity<ResourceInfoDTO> infoResource(@RequestParam("path") String path){
+        ResourceInfoDTO infoAboutResource = fileService.getInfoAboutResource(path);
+        return ResponseEntity.ok().body(infoAboutResource);
+    }
+
 
     @PostMapping
     public ResponseEntity<HttpStatus> uploadFile(@RequestParam("file") MultipartFile multipartFile) {
         log.info("Upload file with name: {}", multipartFile.getOriginalFilename());
-        minioService.uploadFile(multipartFile.getOriginalFilename(), multipartFile);
+        fileService.uploadFile(multipartFile.getOriginalFilename(), multipartFile);
         return ResponseEntity.ok(HttpStatus.OK);
     }
 
     @GetMapping("/download")
     public ResponseEntity<StreamingResponseBody> download(@RequestParam("objectName") String objectName) throws UnsupportedEncodingException {
+        String encodeObjectName = URLEncoder.encode(objectName, StandardCharsets.UTF_8);
         log.info("Download file with name: {}", objectName);
-        InputStream inputStream = minioService.downloadFile(objectName);
-        final StreamingResponseBody out =
-                outputStream -> {
-                    int nRead;
-                    byte[] data = new byte[1024];
-                    while ((nRead = inputStream.read(data, 0, data.length)) != -1) {
-                        outputStream.write(data, 0, nRead);
-                    }
-                };
+        StreamingResponseBody downloadedFile = fileService.downloadFile(objectName);
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-Type", "application/octet-stream");
-        headers.add("Content-Disposition", "attachment; filename=" + objectName);
+        headers.add("Content-Disposition", "attachment; filename=" + encodeObjectName);
         headers.add("Pragma", "no-cache");
         headers.add("Cache-Control", "no-cache");
-        return ResponseEntity.ok().headers(headers).body(out);
+        return ResponseEntity.ok().headers(headers).body(downloadedFile);
     }
 
     @DeleteMapping
     public ResponseEntity<HttpStatus> deleteFile(@RequestParam("objectName") String objectName) {
         log.info("Delete file with name: {}", objectName);
-        minioService.deleteFile(objectName);
+        fileService.deleteFile(objectName);
         return ResponseEntity.ok(HttpStatus.OK);
     }
 }

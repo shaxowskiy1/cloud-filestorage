@@ -96,7 +96,7 @@ public class FileService implements FileStorageService, FolderStorageService {
         return Paths.get(path).getFileName().toString();
     }
 
-
+    //TODO: пофиксить распознавание папки http://localhost:8080/resource/search?query=my/
     public List<ResourceInfoDTO> searchResources(String query) {
         Iterable<Result<Item>> results = minioService.listObjects();
         ArrayList<ResourceInfoDTO> objects = new ArrayList<>();

@@ -1,6 +1,9 @@
 package ru.shaxowskiy.cloudfilestorage.service;
 
+import io.minio.Result;
 import io.minio.StatObjectResponse;
+import io.minio.errors.*;
+import io.minio.messages.Item;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,6 +15,11 @@ import ru.shaxowskiy.cloudfilestorage.models.ResourseType;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -32,7 +40,7 @@ public class FileService implements FileStorageService, FolderStorageService {
 
     @Override
     public StreamingResponseBody downloadFile(String objectName) {
-        final StreamingResponseBody fileDownloadStream = outputStream -> {
+        return outputStream -> {
             try (InputStream inputStream = minioService.downloadFile(objectName)) {
 
                 int nRead;
@@ -45,12 +53,11 @@ public class FileService implements FileStorageService, FolderStorageService {
                 throw new RuntimeException(e);
             }
         };
-        return fileDownloadStream;
     }
 
     @Override
     public void deleteFile(String objectName) {
-
+        minioService.deleteFile(objectName);
     }
 
     @Override
@@ -69,20 +76,46 @@ public class FileService implements FileStorageService, FolderStorageService {
     }
 
     public ResourceInfoDTO getInfoAboutResource(String path) {
-        StatObjectResponse resourceInfo = minioService.statObject(path);
-        if (path.charAt(path.length() - 1) == '/') {
+        boolean isDirectory = path.endsWith("/");
+        if(isDirectory){
             return ResourceInfoDTO.builder()
-                    .name(null)
-                    .size(resourceInfo.size())
-                    .type(ResourseType.DIRECTORY)
                     .path(path)
+                    .name(extractFileNameFromPath(path))
+                    .type(ResourseType.DIRECTORY)
                     .build();
         }
+
+        StatObjectResponse resourceInfo = minioService.statObject(path);
+
         return ResourceInfoDTO.builder()
-                .name(null)
-                .size(resourceInfo.size())
-                .type(ResourseType.FILE)
                 .path(path)
+                .size(resourceInfo.size())
+                .name(extractFileNameFromPath(path))
+                .type(ResourseType.FILE)
                 .build();
+    }
+
+    private String extractFileNameFromPath(String path) {
+        return Paths.get(path).getFileName().toString();
+    }
+
+    //TODO: метод находит по подстроке название ресурса. Реализовать по названию ресурса получение метаинформации ResourceDTO
+    public List<ResourceInfoDTO> searchResources(String query) {
+        Iterable<Result<Item>> results = minioService.listObjects();
+        ArrayList<ResourceInfoDTO> objects = new ArrayList<>();
+        for(Result<Item> result : results){
+            try {
+                String fileName = result.get().objectName();
+                if(fileName.contains(query))
+                {
+                    log.info("Searching object is {}", result.get().objectName());
+                    //objects.add(getInfoAboutResource("/myPath/"));
+                }
+            } catch (Exception e) {
+                log.error("Failed the search: {}", e.getMessage());
+                throw new RuntimeException(e);
+            }
+        }
+        return objects;
     }
 }

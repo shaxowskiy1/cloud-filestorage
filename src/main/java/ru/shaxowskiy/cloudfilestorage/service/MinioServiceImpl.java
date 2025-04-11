@@ -2,6 +2,7 @@ package ru.shaxowskiy.cloudfilestorage.service;
 
 import io.minio.*;
 import io.minio.errors.*;
+import io.minio.messages.Item;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -115,6 +116,13 @@ public class MinioServiceImpl implements MinioService {
         return minioClient.statObject(StatObjectArgs.builder()
                         .bucket(BUCKET_NAME)
                         .object(objectName)
+                .build());
+    }
+
+    public Iterable<Result<Item>> listObjects() {
+        return minioClient.listObjects(ListObjectsArgs.builder()
+                        .bucket(BUCKET_NAME)
+                        .recursive(true)
                 .build());
     }
 }

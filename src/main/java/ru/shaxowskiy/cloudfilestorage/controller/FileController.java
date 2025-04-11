@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @RestController
 @RequestMapping("/resource")
@@ -32,6 +33,7 @@ public class FileController {
 
     @GetMapping
     public ResponseEntity<ResourceInfoDTO> infoResource(@RequestParam("path") String path){
+        log.info("Get info about resource with path: {}", path);
         ResourceInfoDTO infoAboutResource = fileService.getInfoAboutResource(path);
         return ResponseEntity.ok().body(infoAboutResource);
     }
@@ -58,9 +60,15 @@ public class FileController {
     }
 
     @DeleteMapping
-    public ResponseEntity<HttpStatus> deleteFile(@RequestParam("objectName") String objectName) {
+    public ResponseEntity<Void> deleteFile(@RequestParam("objectName") String objectName) {
         log.info("Delete file with name: {}", objectName);
         fileService.deleteFile(objectName);
-        return ResponseEntity.ok(HttpStatus.OK);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<ResourceInfoDTO>> search(@RequestParam("query") String query){
+        List<ResourceInfoDTO> resourceInfoDTOS = fileService.searchResources(query);
+        return ResponseEntity.ok().body(resourceInfoDTOS);
     }
 }

@@ -2,7 +2,6 @@ package ru.shaxowskiy.cloudfilestorage.service;
 
 import io.minio.Result;
 import io.minio.StatObjectResponse;
-import io.minio.errors.*;
 import io.minio.messages.Item;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +15,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -99,7 +96,7 @@ public class FileService implements FileStorageService, FolderStorageService {
         return Paths.get(path).getFileName().toString();
     }
 
-    //TODO: метод находит по подстроке название ресурса. Реализовать по названию ресурса получение метаинформации ResourceDTO
+
     public List<ResourceInfoDTO> searchResources(String query) {
         Iterable<Result<Item>> results = minioService.listObjects();
         ArrayList<ResourceInfoDTO> objects = new ArrayList<>();
@@ -109,7 +106,8 @@ public class FileService implements FileStorageService, FolderStorageService {
                 if(fileName.contains(query))
                 {
                     log.info("Searching object is {}", result.get().objectName());
-                    //objects.add(getInfoAboutResource("/myPath/"));
+                    StatObjectResponse metaInfoAboutObject = minioService.statObject(fileName);
+                    objects.add(getInfoAboutResource(metaInfoAboutObject.object()));
                 }
             } catch (Exception e) {
                 log.error("Failed the search: {}", e.getMessage());

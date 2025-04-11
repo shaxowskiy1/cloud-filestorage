@@ -112,10 +112,10 @@ public class MinioServiceImpl implements MinioService {
     }
 
     @SneakyThrows
-    public StatObjectResponse statObject(String objectName) {
+    public StatObjectResponse statObject(String path) {
         return minioClient.statObject(StatObjectArgs.builder()
                         .bucket(BUCKET_NAME)
-                        .object(objectName)
+                        .object(path)
                 .build());
     }
 

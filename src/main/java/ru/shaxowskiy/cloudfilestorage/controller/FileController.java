@@ -21,8 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/resource")
 @Slf4j
-//TODO: вынести логику обработки в FileService. 1 - добавить методы обрбаотки папок.
-// Добавить path в виде requestParam до файла и парсинг пути. Добавить encoder
+
 public class FileController {
 
     private final FileService fileService;

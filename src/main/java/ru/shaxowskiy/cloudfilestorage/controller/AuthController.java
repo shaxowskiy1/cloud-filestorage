@@ -11,6 +11,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import ru.shaxowskiy.cloudfilestorage.dto.SignInRequestDTO;
 import ru.shaxowskiy.cloudfilestorage.dto.SignUpRequestDTO;
+import ru.shaxowskiy.cloudfilestorage.dto.SignUpResponseDTO;
 import ru.shaxowskiy.cloudfilestorage.exceptions.UserErrorResponse;
 import ru.shaxowskiy.cloudfilestorage.exceptions.UserNotCreatedException;
 import ru.shaxowskiy.cloudfilestorage.service.UserService;
@@ -28,26 +29,25 @@ public class AuthController {
         this.userService = userService;
     }
 
-    @GetMapping("/sign-up")
-    public String registration(){
-        return null;
-    }
 
     @PostMapping("/sign-up")
-    public ResponseEntity<HttpStatus> registerUser(@Valid @RequestBody SignUpRequestDTO user,
+    public ResponseEntity<SignUpResponseDTO> registerUser(@Valid @RequestBody SignUpRequestDTO user,
                                                    BindingResult bindingResult){
         log.debug("Received registration request for user: {}", user.getUsername());
+
         if(bindingResult.hasErrors()){
             log.debug("Errors of validation in process registration user");
             StringBuilder sb = new StringBuilder();
             List<FieldError> fieldErrors = bindingResult.getFieldErrors();
             for(FieldError fieldError : fieldErrors){
-                sb.append(fieldError.getField() + " - " + fieldError.getDefaultMessage() + ". ");
+                sb.append(fieldError.getField() + " - " + fieldError.getDefaultMessage() + ".");
             }
             throw new UserNotCreatedException(sb.toString());
         }
+
         userService.addUser(user);
-        return ResponseEntity.ok(HttpStatus.OK);
+
+        return new ResponseEntity<>(new SignUpResponseDTO(user.getUsername()), HttpStatus.OK);
     }
 
     @ExceptionHandler
@@ -64,15 +64,6 @@ public class AuthController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         log.debug("Received login request for user: {}", user.getUsername());
         //log.debug("Principal login request for user: {}", principal);
-        if(bindingResult.hasErrors()){
-            log.debug("Errors of validation in process login user");
-            StringBuilder sb = new StringBuilder();
-            List<FieldError> fieldErrors = bindingResult.getFieldErrors();
-            for(FieldError fieldError : fieldErrors){
-                sb.append(fieldError.getField() + " - " + fieldError.getDefaultMessage() + ". ");
-            }
-            throw new UserNotCreatedException(sb.toString());
-        }
         //userService.addUser(user);
         return ResponseEntity.ok(HttpStatus.OK);
     }

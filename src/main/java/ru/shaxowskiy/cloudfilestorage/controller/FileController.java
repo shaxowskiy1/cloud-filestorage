@@ -8,11 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import ru.shaxowskiy.cloudfilestorage.dto.ResourceInfoDTO;
-import ru.shaxowskiy.cloudfilestorage.service.FileService;
-import ru.shaxowskiy.cloudfilestorage.service.MinioServiceImpl;
+import ru.shaxowskiy.cloudfilestorage.service.impl.FileServiceImpl;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -24,16 +21,16 @@ import java.util.List;
 
 public class FileController {
 
-    private final FileService fileService;
+    private final FileServiceImpl fileServiceImpl;
 
-    public FileController(FileService fileService) {
-        this.fileService = fileService;
+    public FileController(FileServiceImpl fileServiceImpl) {
+        this.fileServiceImpl = fileServiceImpl;
     }
 
     @GetMapping
     public ResponseEntity<ResourceInfoDTO> infoResource(@RequestParam("path") String path){
         log.info("Get info about resource with path: {}", path);
-        ResourceInfoDTO infoAboutResource = fileService.getInfoAboutResource(path);
+        ResourceInfoDTO infoAboutResource = fileServiceImpl.getInfoAboutResource(path);
         return ResponseEntity.ok().body(infoAboutResource);
     }
 
@@ -41,7 +38,7 @@ public class FileController {
     @PostMapping
     public ResponseEntity<HttpStatus> uploadFile(@RequestParam("file") MultipartFile multipartFile) {
         log.info("Upload file with name: {}", multipartFile.getOriginalFilename());
-        fileService.uploadFile(multipartFile.getOriginalFilename(), multipartFile);
+        fileServiceImpl.uploadFile(multipartFile.getOriginalFilename(), multipartFile);
         return ResponseEntity.ok(HttpStatus.OK);
     }
 
@@ -49,7 +46,7 @@ public class FileController {
     public ResponseEntity<StreamingResponseBody> download(@RequestParam("objectName") String objectName) throws UnsupportedEncodingException {
         String encodeObjectName = URLEncoder.encode(objectName, StandardCharsets.UTF_8);
         log.info("Download file with name: {}", objectName);
-        StreamingResponseBody downloadedFile = fileService.downloadFile(objectName);
+        StreamingResponseBody downloadedFile = fileServiceImpl.downloadFile(objectName);
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-Type", "application/octet-stream");
         headers.add("Content-Disposition", "attachment; filename=" + encodeObjectName);
@@ -61,13 +58,13 @@ public class FileController {
     @DeleteMapping
     public ResponseEntity<Void> deleteFile(@RequestParam("objectName") String objectName) {
         log.info("Delete file with name: {}", objectName);
-        fileService.deleteFile(objectName);
+        fileServiceImpl.deleteFile(objectName);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/search")
     public ResponseEntity<List<ResourceInfoDTO>> search(@RequestParam("query") String query){
-        List<ResourceInfoDTO> resourceInfoDTOS = fileService.searchResources(query);
+        List<ResourceInfoDTO> resourceInfoDTOS = fileServiceImpl.searchResources(query);
         return ResponseEntity.ok().body(resourceInfoDTOS);
     }
 }

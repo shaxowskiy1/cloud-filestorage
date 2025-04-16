@@ -1,4 +1,4 @@
-package ru.shaxowskiy.cloudfilestorage.service;
+package ru.shaxowskiy.cloudfilestorage.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;

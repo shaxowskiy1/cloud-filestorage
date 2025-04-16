@@ -1,4 +1,4 @@
-package ru.shaxowskiy.cloudfilestorage.service;
+package ru.shaxowskiy.cloudfilestorage.service.impl;
 
 import io.minio.*;
 import io.minio.errors.*;
@@ -10,7 +10,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.shaxowskiy.cloudfilestorage.models.User;
+import ru.shaxowskiy.cloudfilestorage.service.MinioService;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -97,8 +99,16 @@ public class MinioServiceImpl implements MinioService {
     }
 
     @Override
-    public void createFolder() {
-
+    public void createFolder(String objectName) {
+        try {
+            minioClient.putObject(PutObjectArgs.builder()
+                    .bucket(BUCKET_NAME)
+                    .object(objectName + "/")
+                    .stream(new ByteArrayInputStream(new byte[]{}), 0, -1)
+                    .build());
+        } catch (Exception e) {
+            log.error("Create folder error {}", e.getMessage());
+        }
     }
 
     @Override

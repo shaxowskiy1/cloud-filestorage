@@ -13,7 +13,7 @@ import ru.shaxowskiy.cloudfilestorage.dto.SignInRequestDTO;
 import ru.shaxowskiy.cloudfilestorage.dto.SignUpRequestDTO;
 import ru.shaxowskiy.cloudfilestorage.exceptions.UserErrorResponse;
 import ru.shaxowskiy.cloudfilestorage.exceptions.UserNotCreatedException;
-import ru.shaxowskiy.cloudfilestorage.service.UserService;
+import ru.shaxowskiy.cloudfilestorage.service.impl.UserService;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package ru.shaxowskiy.cloudfilestorage.service;
+package ru.shaxowskiy.cloudfilestorage.service.impl;
 
 import io.minio.Result;
 import io.minio.StatObjectResponse;
@@ -10,8 +10,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import ru.shaxowskiy.cloudfilestorage.dto.ResourceInfoDTO;
 import ru.shaxowskiy.cloudfilestorage.models.ResourseType;
+import ru.shaxowskiy.cloudfilestorage.service.FileStorageService;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
@@ -20,13 +20,13 @@ import java.util.List;
 
 @Service
 @Slf4j
-public class FileService implements FileStorageService, FolderStorageService {
+public class FileServiceImpl implements FileStorageService {
 
     private final Integer BUFFER_SIZE = 1024 * 1024;
     private final MinioServiceImpl minioService;
 
     @Autowired
-    public FileService(MinioServiceImpl minioService) {
+    public FileServiceImpl(MinioServiceImpl minioService) {
         this.minioService = minioService;
     }
 
@@ -57,20 +57,6 @@ public class FileService implements FileStorageService, FolderStorageService {
         minioService.deleteFile(objectName);
     }
 
-    @Override
-    public void createFolder() {
-
-    }
-
-    @Override
-    public FileInputStream downloadFolder() {
-        return null;
-    }
-
-    @Override
-    public void deleteFolder() {
-
-    }
 
     public ResourceInfoDTO getInfoAboutResource(String path) {
         boolean isDirectory = path.endsWith("/");

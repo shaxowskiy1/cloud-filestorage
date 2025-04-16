@@ -14,7 +14,7 @@ public interface MinioService {
 
     void deleteFile(String objectName);
 
-    void createFolder();
+    void createFolder(String objectName);
 
     FileInputStream downloadFolder();
 

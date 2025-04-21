@@ -1,5 +1,6 @@
 package ru.shaxowskiy.cloudfilestorage.service;
 
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,10 +36,11 @@ public class UserService implements UserDetailsService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public void addUser(SignUpRequestDTO signUpRequestDTO){
+    @Transactional
+    public void addUser(SignUpRequestDTO signUpRequestDTO) {
         log.debug("Adding user from UserService: {}", signUpRequestDTO.getUsername());
         Optional<User> foundUser = userRepository.findByUsername(signUpRequestDTO.getUsername());
-        if(foundUser.isPresent()){
+        if (foundUser.isPresent()) {
             throw new UserAlreadyExistInDatabase("User with this username already exist");
         }
         User user = setFieldsToUser(signUpRequestDTO);
@@ -50,7 +52,7 @@ public class UserService implements UserDetailsService {
         user.setUsername(signUpRequestDTO.getUsername());
         user.setFirstname(signUpRequestDTO.getFirstname());
         user.setLastname(signUpRequestDTO.getLastname());
-       user.setPassword(passwordEncoder.encode(signUpRequestDTO.getPassword()));
+        user.setPassword(passwordEncoder.encode(signUpRequestDTO.getPassword()));
         user.setRole(Collections.singleton(Role.USER));
         user.setActive(true);
         return user;
@@ -63,7 +65,8 @@ public class UserService implements UserDetailsService {
                         user.getUsername(),
                         user.getPassword(),
                         mapRole(user.getRole())))
-                .orElseThrow(() -> new UsernameNotFoundException("Failed to retrieve user: " + username));
+                .orElseThrow(() ->
+                        new UsernameNotFoundException("Failed to retrieve user: " + username));
     }
 
     private Collection<? extends GrantedAuthority> mapRole(Set<Role> roles) {
@@ -71,5 +74,10 @@ public class UserService implements UserDetailsService {
                 .stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
                 .collect(Collectors.toSet());
+    }
+
+    @Transactional
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username).orElseThrow(RuntimeException::new);
     }
 }

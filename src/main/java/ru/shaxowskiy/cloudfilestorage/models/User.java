@@ -38,8 +38,10 @@ public class User {
     @Column(name = "last_name")
     private String lastname;
 
+    @Column(name = "is_active")
     private boolean isActive;
 
+    @Column(name = "roles", columnDefinition = "text[]")
     @JdbcTypeCode(SqlTypes.ARRAY)
     @Enumerated(EnumType.STRING)
     private Set<Role> role;

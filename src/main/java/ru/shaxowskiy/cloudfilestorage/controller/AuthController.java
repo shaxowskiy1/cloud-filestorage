@@ -2,18 +2,24 @@ package ru.shaxowskiy.cloudfilestorage.controller;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import ru.shaxowskiy.cloudfilestorage.dto.SignInRequestDTO;
 import ru.shaxowskiy.cloudfilestorage.dto.SignUpRequestDTO;
-import ru.shaxowskiy.cloudfilestorage.dto.SignUpResponseDTO;
+import ru.shaxowskiy.cloudfilestorage.dto.AuthResponseDTO;
 import ru.shaxowskiy.cloudfilestorage.exceptions.UserErrorResponse;
 import ru.shaxowskiy.cloudfilestorage.exceptions.UserNotCreatedException;
+import ru.shaxowskiy.cloudfilestorage.repositories.UserRepository;
 import ru.shaxowskiy.cloudfilestorage.service.UserService;
 
 import java.util.List;
@@ -23,23 +29,30 @@ import java.util.List;
 @Slf4j
 public class AuthController {
 
+    private final AuthenticationManager authenticationManager;
     private final UserService userService;
+    private final PasswordEncoder passwordEncode;
+    private final UserRepository userRepository;
 
-    public AuthController(UserService userService) {
+    @Autowired
+    public AuthController(AuthenticationManager authenticationManager, UserService userService, PasswordEncoder passwordEncode, UserRepository userRepository) {
+        this.authenticationManager = authenticationManager;
         this.userService = userService;
+        this.passwordEncode = passwordEncode;
+        this.userRepository = userRepository;
     }
 
 
     @PostMapping("/sign-up")
-    public ResponseEntity<SignUpResponseDTO> registerUser(@Valid @RequestBody SignUpRequestDTO user,
-                                                   BindingResult bindingResult){
+    public ResponseEntity<AuthResponseDTO> registerUser(@Valid @RequestBody SignUpRequestDTO user,
+                                                        BindingResult bindingResult) {
         log.debug("Received registration request for user: {}", user.getUsername());
 
-        if(bindingResult.hasErrors()){
+        if (bindingResult.hasErrors()) {
             log.debug("Errors of validation in process registration user");
             StringBuilder sb = new StringBuilder();
             List<FieldError> fieldErrors = bindingResult.getFieldErrors();
-            for(FieldError fieldError : fieldErrors){
+            for (FieldError fieldError : fieldErrors) {
                 sb.append(fieldError.getField() + " - " + fieldError.getDefaultMessage() + ".");
             }
             throw new UserNotCreatedException(sb.toString());
@@ -47,24 +60,29 @@ public class AuthController {
 
         userService.addUser(user);
 
-        return new ResponseEntity<>(new SignUpResponseDTO(user.getUsername()), HttpStatus.OK);
+        return new ResponseEntity<>(new AuthResponseDTO(user.getUsername()), HttpStatus.OK);
     }
 
     @ExceptionHandler
-    public ResponseEntity<UserErrorResponse> handleUserNotCreatedException(UserNotCreatedException e){
+    public ResponseEntity<UserErrorResponse> handleUserNotCreatedException(UserNotCreatedException e) {
         UserErrorResponse userErrorResponse = new UserErrorResponse();
         userErrorResponse.setMessage(e.getMessage());
         return new ResponseEntity<>(userErrorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    //Приходит запрос с JSON
+    //TODO разобраться с ошибкой Failed sign in org.postgresql.util.PSQLException: Запрос не вернул результатов.
     @PostMapping("/sign-in")
-    public ResponseEntity<HttpStatus> loginUser(@Valid @RequestBody SignInRequestDTO user,
-                                                   BindingResult bindingResult){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        log.debug("Received login request for user: {}", user.getUsername());
-        //log.debug("Principal login request for user: {}", principal);
-        //userService.addUser(user);
-        return ResponseEntity.ok(HttpStatus.OK);
+    public ResponseEntity<?> loginUser(@Valid @RequestBody SignInRequestDTO requestUser) {
+        log.info("Received login request for user: {}", requestUser.getUsername());
+        try {
+            Authentication authenticate = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(requestUser.getUsername(),
+                            requestUser.getPassword()));
+            SecurityContextHolder.getContext().setAuthentication(authenticate);
+            return ResponseEntity.ok(new AuthResponseDTO(requestUser.getUsername()));
+        } catch(AuthenticationException e){
+            log.info("Failed sign in {}", e.getMessage());
+            return ResponseEntity.status(401).body("Invalid credentials");
+        }
     }
 }

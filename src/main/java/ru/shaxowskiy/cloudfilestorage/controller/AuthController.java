@@ -59,7 +59,6 @@ public class AuthController {
         }
 
         userService.addUser(user);
-
         return new ResponseEntity<>(new AuthResponseDTO(user.getUsername()), HttpStatus.OK);
     }
 
@@ -70,7 +69,7 @@ public class AuthController {
         return new ResponseEntity<>(userErrorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    //TODO разобраться с ошибкой Failed sign in org.postgresql.util.PSQLException: Запрос не вернул результатов.
+
     @PostMapping("/sign-in")
     public ResponseEntity<?> loginUser(@Valid @RequestBody SignInRequestDTO requestUser) {
         log.info("Received login request for user: {}", requestUser.getUsername());
@@ -84,5 +83,20 @@ public class AuthController {
             log.info("Failed sign in {}", e.getMessage());
             return ResponseEntity.status(401).body("Invalid credentials");
         }
+    }
+
+    @GetMapping("/user/me")
+    public ResponseEntity<?> profileUser(){
+        log.info("Received profile request for user");
+
+        String name = SecurityContextHolder.getContext().getAuthentication().getName();
+        return new ResponseEntity<>(userService.findByUsername(name), HttpStatus.OK);
+    }
+
+    @PostMapping("/sign-out")
+    public ResponseEntity<?> logoutUser(){
+        log.info("Received logout user");
+
+        return ResponseEntity.noContent().build();
     }
 }

@@ -30,10 +30,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/sign-in", "/api/auth/sign-up", "/api/debug/users").permitAll()
+                        .requestMatchers("/api/auth/sign-in", "/api/auth/sign-up").permitAll()
                         .anyRequest().authenticated())
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
+                .logout(logout -> logout.logoutUrl("/"))
                 .build();
     }
 

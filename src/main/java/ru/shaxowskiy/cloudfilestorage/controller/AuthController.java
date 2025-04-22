@@ -1,5 +1,7 @@
 package ru.shaxowskiy.cloudfilestorage.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +11,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
@@ -71,13 +74,17 @@ public class AuthController {
 
 
     @PostMapping("/sign-in")
-    public ResponseEntity<?> loginUser(@Valid @RequestBody SignInRequestDTO requestUser) {
+    public ResponseEntity<?> loginUser(@Valid @RequestBody SignInRequestDTO requestUser, HttpServletRequest request) {
         log.info("Received login request for user: {}", requestUser.getUsername());
         try {
             Authentication authenticate = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(requestUser.getUsername(),
                             requestUser.getPassword()));
-            SecurityContextHolder.getContext().setAuthentication(authenticate);
+            SecurityContext context = SecurityContextHolder.getContext();
+            context.setAuthentication(authenticate);
+
+            HttpSession session = request.getSession(true);
+            session.setAttribute("SPRING_SECURITY_CONTEXT", context);
             return ResponseEntity.ok(new AuthResponseDTO(requestUser.getUsername()));
         } catch(AuthenticationException e){
             log.info("Failed sign in {}", e.getMessage());
@@ -85,6 +92,7 @@ public class AuthController {
         }
     }
 
+    //TODO использовать маппер
     @GetMapping("/user/me")
     public ResponseEntity<?> profileUser(){
         log.info("Received profile request for user");
@@ -96,7 +104,6 @@ public class AuthController {
     @PostMapping("/sign-out")
     public ResponseEntity<?> logoutUser(){
         log.info("Received logout user");
-
         return ResponseEntity.noContent().build();
     }
 }

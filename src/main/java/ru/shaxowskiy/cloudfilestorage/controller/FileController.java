@@ -43,10 +43,10 @@ public class FileController {
     }
 
     @GetMapping("/download")
-    public ResponseEntity<StreamingResponseBody> download(@RequestParam("objectName") String objectName) throws UnsupportedEncodingException {
-        String encodeObjectName = URLEncoder.encode(objectName, StandardCharsets.UTF_8);
-        log.info("Download file with name: {}", objectName);
-        StreamingResponseBody downloadedFile = fileServiceImpl.downloadFile(objectName);
+    public ResponseEntity<StreamingResponseBody> download(@RequestParam("path") String path) throws UnsupportedEncodingException {
+        String encodeObjectName = URLEncoder.encode(path, StandardCharsets.UTF_8);
+        log.info("Download file with name: {}", path);
+        StreamingResponseBody downloadedFile = fileServiceImpl.downloadFile(path);
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-Type", "application/octet-stream");
         headers.add("Content-Disposition", "attachment; filename=" + encodeObjectName);

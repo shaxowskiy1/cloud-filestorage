@@ -36,10 +36,9 @@ public class FileServiceImpl implements FileStorageService {
     }
 
     @Override
-    public StreamingResponseBody downloadFile(String objectName) {
+    public StreamingResponseBody downloadFile(String path) {
         return outputStream -> {
-            try (InputStream inputStream = minioService.downloadFile(objectName)) {
-
+            try (InputStream inputStream = minioService.downloadFile(path)) {
                 int nRead;
                 byte[] data = new byte[BUFFER_SIZE];
                 while ((nRead = inputStream.read(data, 0, data.length)) != -1) {

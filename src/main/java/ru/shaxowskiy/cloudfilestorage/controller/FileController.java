@@ -67,4 +67,11 @@ public class FileController {
         List<ResourceInfoDTO> resourceInfoDTOS = fileServiceImpl.searchResources(query);
         return ResponseEntity.ok().body(resourceInfoDTOS);
     }
+
+    @GetMapping
+    public ResponseEntity<ResourceInfoDTO> renameOrRebaseResource(@RequestParam("from") String from,
+                                                                  @RequestParam("to") String to){
+        fileServiceImpl.copyObject(from, to);
+
+    }
 }

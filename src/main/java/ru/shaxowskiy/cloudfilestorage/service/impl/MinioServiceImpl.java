@@ -121,11 +121,29 @@ public class MinioServiceImpl implements MinioService {
 
     }
 
+    @Override
+    public void copyObject(String objectName) {
+        try {
+            minioClient.copyObject(CopyObjectArgs.builder()
+                            .bucket(BUCKET_NAME)
+                            .object(objectName)
+
+                            .source(CopySource.builder()
+
+                                    .bucket(BUCKET_NAME)
+                                    .object(objectName)
+                                    .build())
+                    .build());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @SneakyThrows
-    public StatObjectResponse statObject(String path) {
+    public StatObjectResponse statObject(String objectName) {
         return minioClient.statObject(StatObjectArgs.builder()
                         .bucket(BUCKET_NAME)
-                        .object(path)
+                        .object(objectName)
                 .build());
     }
 

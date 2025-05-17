@@ -19,4 +19,6 @@ public interface MinioService {
     FileInputStream downloadFolder();
 
     void deleteFolder();
+
+    void copyObject(String path);
 }

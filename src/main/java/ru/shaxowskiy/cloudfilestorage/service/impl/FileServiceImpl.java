@@ -87,11 +87,11 @@ public class FileServiceImpl implements FileStorageService {
         ArrayList<ResourceInfoDTO> objects = new ArrayList<>();
         for(Result<Item> result : results){
             try {
-                String fileName = result.get().objectName();
+                String fileName = result.get().objectName(); //TODO БАГ возвращает N раз директорию, где N - кол-во файлов
                 if(fileName.contains(query))
                 {
                     log.info("Searching object is {}", result.get().objectName());
-                    StatObjectResponse metaInfoAboutObject = minioService.statObject(fileName);
+                    StatObjectResponse metaInfoAboutObject = minioService.statObject(query);
                     objects.add(getInfoAboutResource(metaInfoAboutObject.object()));
                 }
             } catch (Exception e) {
@@ -101,4 +101,15 @@ public class FileServiceImpl implements FileStorageService {
         }
         return objects;
     }
+    //TODO логика перемещения/переименования
+    public void copyObject(String queryFrom, String queryTo){
+        ResourceInfoDTO infoFileFrom = getInfoAboutResource(queryFrom);
+        String nameFrom = infoFileFrom.getName();
+
+        ResourceInfoDTO infoFileTo= getInfoAboutResource(queryTo);
+        String nameTo = infoFileTo.getName();
+        //infoFileTo.
+        //minioService.copyObject(name);
+    }
+
 }

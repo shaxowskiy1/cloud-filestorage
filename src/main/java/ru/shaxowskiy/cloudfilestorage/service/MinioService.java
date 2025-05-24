@@ -20,5 +20,5 @@ public interface MinioService {
 
     void deleteFolder();
 
-    void copyObject(String path);
+    void copyObject(String pathTo, String pathFrom);
 }

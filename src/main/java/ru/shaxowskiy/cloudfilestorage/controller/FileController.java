@@ -18,7 +18,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/resource")
 @Slf4j
-
 public class FileController {
 
     private final FileServiceImpl fileServiceImpl;
@@ -68,10 +67,10 @@ public class FileController {
         return ResponseEntity.ok().body(resourceInfoDTOS);
     }
 
-    @GetMapping
+    @GetMapping("/move")
     public ResponseEntity<ResourceInfoDTO> renameOrRebaseResource(@RequestParam("from") String from,
                                                                   @RequestParam("to") String to){
-        fileServiceImpl.copyObject(from, to);
-
+        ResourceInfoDTO movedResource = fileServiceImpl.copyObject(from, to);
+        return ResponseEntity.ok().body(movedResource);
     }
 }

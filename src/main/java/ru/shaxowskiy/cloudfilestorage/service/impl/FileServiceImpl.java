@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import ru.shaxowskiy.cloudfilestorage.dto.ResourceInfoDTO;
+import ru.shaxowskiy.cloudfilestorage.exceptions.FileNotExistException;
+import ru.shaxowskiy.cloudfilestorage.exceptions.FileOperationException;
 import ru.shaxowskiy.cloudfilestorage.models.ResourseType;
 import ru.shaxowskiy.cloudfilestorage.service.FileStorageService;
 
@@ -52,8 +54,10 @@ public class FileServiceImpl implements FileStorageService {
     }
 
     @Override
-    public void deleteFile(String objectName) {
-        minioService.deleteFile(objectName);
+    public void deleteFile(String path) {
+        ResourceInfoDTO infoAboutResource = getInfoAboutResource(path);
+        String name = infoAboutResource.getName();
+        minioService.deleteFile(path);
     }
 
 
@@ -101,15 +105,18 @@ public class FileServiceImpl implements FileStorageService {
         }
         return objects;
     }
-    //TODO логика перемещения/переименования
-    public void copyObject(String queryFrom, String queryTo){
-        ResourceInfoDTO infoFileFrom = getInfoAboutResource(queryFrom);
-        String nameFrom = infoFileFrom.getName();
-
-        ResourceInfoDTO infoFileTo= getInfoAboutResource(queryTo);
-        String nameTo = infoFileTo.getName();
-        //infoFileTo.
-        //minioService.copyObject(name);
+    //TODO баг неправильно работает метод
+    public ResourceInfoDTO copyObject(String queryFrom, String queryTo){
+       if(!minioService.objectExist(getInfoAboutResource(queryFrom).getName())){
+           throw new FileNotExistException("File does not exist " + queryFrom);
+       }
+       try {
+           minioService.copyObject(queryFrom, queryTo);
+           deleteFile(queryTo);
+           return getInfoAboutResource(queryTo);
+       } catch (Exception e) {
+           throw new FileOperationException("Failed to copy file");
+       }
     }
 
 }

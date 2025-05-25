@@ -33,8 +33,27 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    networks:
+      - redis-net
+
+  redis-insight:
+    image: redis/redisinsight:latest
+    restart: always
+    depends_on:
+      - redis
+    ports:
+      - "5540:5540"
+    volumes:
+      - redis-insight:/data
+    networks:
+      - redis-net
 
 volumes:
   minio_data:
   redis_data:
   db_data:
+  redis-insight:
+
+networks:
+  redis-net:
+    driver: bridge

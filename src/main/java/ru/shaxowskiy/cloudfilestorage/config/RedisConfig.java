@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 import org.springframework.session.web.context.AbstractHttpSessionApplicationInitializer;
 
@@ -27,7 +28,6 @@ public class RedisConfig extends AbstractHttpSessionApplicationInitializer {
         JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory();
         jedisConnectionFactory.setPort(port);
         jedisConnectionFactory.setHostName(host);
-
         return jedisConnectionFactory;
     }
 
@@ -35,6 +35,7 @@ public class RedisConfig extends AbstractHttpSessionApplicationInitializer {
     public RedisTemplate<String, Object> redisTemplate() {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(jedisConnectionFactory());
+        template.setDefaultSerializer(new GenericJackson2JsonRedisSerializer());
         return template;
     }
 

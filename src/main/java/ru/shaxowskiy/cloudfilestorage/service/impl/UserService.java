@@ -78,6 +78,6 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public User findByUsername(String username) {
-        return userRepository.findByUsername(username).orElseThrow(RuntimeException::new);
+        return userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Failed to retrieve user: " + username));
     }
 }

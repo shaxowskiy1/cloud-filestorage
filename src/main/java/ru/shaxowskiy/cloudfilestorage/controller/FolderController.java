@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.shaxowskiy.cloudfilestorage.dto.ResourceInfoDTO;
 import ru.shaxowskiy.cloudfilestorage.service.impl.FolderServiceImpl;
 
 @RestController
@@ -21,8 +22,8 @@ public class FolderController {
     }
 
     @PostMapping
-    public ResponseEntity<HttpStatus> createFolder(@RequestParam("objectName") String objectName){
-        folderService.createFolder(objectName);
-        return ResponseEntity.ok(HttpStatus.OK);
+    public ResponseEntity<ResourceInfoDTO> createFolder(@RequestParam("path") String path){
+        ResourceInfoDTO newFolder = folderService.createFolder(path);
+        return ResponseEntity.ok(newFolder);
     }
 }

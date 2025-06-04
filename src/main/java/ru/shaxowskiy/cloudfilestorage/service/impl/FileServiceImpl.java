@@ -33,8 +33,15 @@ public class FileServiceImpl implements FileStorageService {
     }
 
     @Override
-    public void uploadFile(String objectName, MultipartFile multipartFile) {
-        minioService.uploadFile(objectName, multipartFile);
+    public ResourceInfoDTO uploadFile(String objectName, MultipartFile multipartFile, String path) {
+        String normalizedPath = path.endsWith("/") ? path : path + "/";
+        minioService.uploadFile(objectName, multipartFile, normalizedPath);
+        return ResourceInfoDTO.builder()
+                .name(multipartFile.getOriginalFilename())
+                .path(path)
+                .size(multipartFile.getSize())
+                .type(ResourseType.FILE)
+                .build();
     }
 
     @Override

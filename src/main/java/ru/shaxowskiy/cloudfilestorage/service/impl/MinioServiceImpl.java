@@ -58,11 +58,11 @@ public class MinioServiceImpl implements MinioService {
 
 
     @Override
-    public void uploadFile(String objectName, MultipartFile multipartFile) {
+    public void uploadFile(String objectName, MultipartFile multipartFile, String path) {
         try (InputStream inputStream = multipartFile.getInputStream()) {
             minioClient.putObject(PutObjectArgs.builder()
                     .bucket(BUCKET_NAME)
-                    .object(objectName)
+                    .object(path + objectName)
                     .stream(inputStream, multipartFile.getSize(), -1)
                     .contentType(multipartFile.getContentType())
                     .build());

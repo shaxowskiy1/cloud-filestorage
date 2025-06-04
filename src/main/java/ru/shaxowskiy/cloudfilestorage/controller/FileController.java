@@ -35,10 +35,11 @@ public class FileController {
 
 
     @PostMapping
-    public ResponseEntity<HttpStatus> uploadFile(@RequestParam("file") MultipartFile multipartFile) {
+    public ResponseEntity<ResourceInfoDTO> uploadFile(@RequestParam("file") MultipartFile multipartFile,
+                                                 @RequestParam("path") String path) {
         log.info("Upload file with name: {}", multipartFile.getOriginalFilename());
-        fileServiceImpl.uploadFile(multipartFile.getOriginalFilename(), multipartFile);
-        return ResponseEntity.ok(HttpStatus.OK);
+        ResourceInfoDTO resource = fileServiceImpl.uploadFile(multipartFile.getOriginalFilename(), multipartFile, path);
+        return ResponseEntity.ok(resource);
     }
 
     @GetMapping("/download")

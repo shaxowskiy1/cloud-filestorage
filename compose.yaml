@@ -8,6 +8,8 @@ services:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USERNAME: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASS}
+    volumes:
+      - postgres_data:/data
 
   minio:
     image: minio/minio:latest
@@ -23,3 +25,5 @@ services:
 
 volumes:
   minio_data:
+  postgres_data:
+

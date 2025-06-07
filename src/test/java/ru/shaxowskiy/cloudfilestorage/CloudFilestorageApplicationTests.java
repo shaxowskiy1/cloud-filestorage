@@ -13,28 +13,4 @@ import ru.shaxowskiy.cloudfilestorage.service.impl.UserService;
 @SpringBootTest
 class CloudFilestorageApplicationTests {
 
-    @Autowired
-    private UserService userService;
-
-	@BeforeEach
-	void setUp(){
-		userService.addUser(getVtbvtbvtb());
-	}
-	@Test
-	void contextLoads() {
-		User byUsername = userService.findByUsername("vtbvtbvtb");
-
-		System.out.println(byUsername.toString());
-	}
-
-	private static SignUpRequestDTO getVtbvtbvtb() {
-		SignUpRequestDTO signUpRequestDTO = new SignUpRequestDTO();
-		signUpRequestDTO.setUsername("vtbvtbvtb");
-		signUpRequestDTO.setPassword("vtbvtbvtb");
-		signUpRequestDTO.setConfirmPassword("vtbvtbvtb");
-		signUpRequestDTO.setFirstname("vtbvtbvtb");
-		signUpRequestDTO.setLastname("vtbvtbvtb");
-		return signUpRequestDTO;
-	}
-
 }

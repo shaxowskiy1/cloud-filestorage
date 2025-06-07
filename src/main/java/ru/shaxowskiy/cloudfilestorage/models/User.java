@@ -11,8 +11,10 @@ import java.util.Set;
 
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "users")
+@Builder
 public class User {
 
     @Id
@@ -45,5 +47,7 @@ public class User {
     @JdbcTypeCode(SqlTypes.ARRAY)
     @Enumerated(EnumType.STRING)
     private Set<Role> role;
+
+
 
 }

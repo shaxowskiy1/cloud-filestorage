@@ -88,7 +88,7 @@ public class AuthController {
             return ResponseEntity.ok(new AuthResponseDTO(requestUser.getUsername()));
         } catch(AuthenticationException e){
             log.info("Failed sign in {}", e.getMessage());
-            return ResponseEntity.status(401).body("Invalid credentials");
+            return ResponseEntity.status(401).body("Неверные логин или пароль");
         }
     }
 

@@ -8,7 +8,7 @@ import java.io.InputStream;
 public interface MinioService {
     boolean isBucketExist(String bucketName);
 
-    void uploadFile(String objectName, MultipartFile multipartFile);
+    void uploadFile(String objectName, MultipartFile multipartFile, String path);
 
     InputStream downloadFile(String objectName);
 
@@ -19,4 +19,6 @@ public interface MinioService {
     FileInputStream downloadFolder();
 
     void deleteFolder();
+
+    void copyObject(String pathTo, String pathFrom);
 }

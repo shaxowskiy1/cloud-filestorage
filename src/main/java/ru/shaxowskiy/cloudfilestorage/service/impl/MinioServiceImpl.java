@@ -58,11 +58,11 @@ public class MinioServiceImpl implements MinioService {
 
 
     @Override
-    public void uploadFile(String objectName, MultipartFile multipartFile) {
+    public void uploadFile(String objectName, MultipartFile multipartFile, String path) {
         try (InputStream inputStream = multipartFile.getInputStream()) {
             minioClient.putObject(PutObjectArgs.builder()
                     .bucket(BUCKET_NAME)
-                    .object(objectName)
+                    .object(path + objectName)
                     .stream(inputStream, multipartFile.getSize(), -1)
                     .contentType(multipartFile.getContentType())
                     .build());
@@ -121,11 +121,29 @@ public class MinioServiceImpl implements MinioService {
 
     }
 
+    @Override
+    public void copyObject(String resourcePathFrom, String resourceFilePathTo) {
+        try {
+            minioClient.copyObject(CopyObjectArgs.builder()
+                            .bucket(BUCKET_NAME)
+                            .object(resourceFilePathTo)
+
+                            .source(CopySource.builder()
+
+                                    .bucket(BUCKET_NAME)
+                                    .object(resourcePathFrom)
+                                    .build())
+                    .build());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @SneakyThrows
-    public StatObjectResponse statObject(String path) {
+    public StatObjectResponse statObject(String objectName) {
         return minioClient.statObject(StatObjectArgs.builder()
                         .bucket(BUCKET_NAME)
-                        .object(path)
+                        .object(objectName)
                 .build());
     }
 
@@ -134,5 +152,21 @@ public class MinioServiceImpl implements MinioService {
                         .bucket(BUCKET_NAME)
                         .recursive(true)
                 .build());
+    }
+
+    public boolean objectExist(String file) {
+        try {
+            minioClient.statObject(StatObjectArgs.builder()
+                    .bucket(BUCKET_NAME)
+                    .object(file)
+                    .build());
+            return true;
+        } catch (ErrorResponseException e) {
+            e.printStackTrace();
+            return false;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
+        }
     }
 }

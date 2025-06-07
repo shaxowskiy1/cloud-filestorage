@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import ru.shaxowskiy.cloudfilestorage.dto.ResourceInfoDTO;
+import ru.shaxowskiy.cloudfilestorage.exceptions.FileNotExistException;
+import ru.shaxowskiy.cloudfilestorage.exceptions.FileOperationException;
 import ru.shaxowskiy.cloudfilestorage.models.ResourseType;
 import ru.shaxowskiy.cloudfilestorage.service.FileStorageService;
 
@@ -31,8 +33,15 @@ public class FileServiceImpl implements FileStorageService {
     }
 
     @Override
-    public void uploadFile(String objectName, MultipartFile multipartFile) {
-        minioService.uploadFile(objectName, multipartFile);
+    public ResourceInfoDTO uploadFile(String objectName, MultipartFile multipartFile, String path) {
+        String normalizedPath = path.endsWith("/") ? path : path + "/";
+        minioService.uploadFile(objectName, multipartFile, normalizedPath);
+        return ResourceInfoDTO.builder()
+                .name(multipartFile.getOriginalFilename())
+                .path(path)
+                .size(multipartFile.getSize())
+                .type(ResourseType.FILE)
+                .build();
     }
 
     @Override
@@ -52,8 +61,10 @@ public class FileServiceImpl implements FileStorageService {
     }
 
     @Override
-    public void deleteFile(String objectName) {
-        minioService.deleteFile(objectName);
+    public void deleteFile(String path) {
+        ResourceInfoDTO infoAboutResource = getInfoAboutResource(path);
+        String name = infoAboutResource.getName();
+        minioService.deleteFile(path);
     }
 
 
@@ -87,11 +98,11 @@ public class FileServiceImpl implements FileStorageService {
         ArrayList<ResourceInfoDTO> objects = new ArrayList<>();
         for(Result<Item> result : results){
             try {
-                String fileName = result.get().objectName();
+                String fileName = result.get().objectName(); //TODO БАГ возвращает N раз директорию, где N - кол-во файлов
                 if(fileName.contains(query))
                 {
                     log.info("Searching object is {}", result.get().objectName());
-                    StatObjectResponse metaInfoAboutObject = minioService.statObject(fileName);
+                    StatObjectResponse metaInfoAboutObject = minioService.statObject(query);
                     objects.add(getInfoAboutResource(metaInfoAboutObject.object()));
                 }
             } catch (Exception e) {
@@ -101,4 +112,18 @@ public class FileServiceImpl implements FileStorageService {
         }
         return objects;
     }
+    //TODO баг неправильно работает метод
+    public ResourceInfoDTO copyObject(String queryFrom, String queryTo){
+       if(!minioService.objectExist(getInfoAboutResource(queryFrom).getName())){
+           throw new FileNotExistException("File does not exist " + queryFrom);
+       }
+       try {
+           minioService.copyObject(queryFrom, queryTo);
+           deleteFile(queryTo);
+           return getInfoAboutResource(queryTo);
+       } catch (Exception e) {
+           throw new FileOperationException("Failed to copy file");
+       }
+    }
+
 }

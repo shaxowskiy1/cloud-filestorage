@@ -18,7 +18,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/resource")
 @Slf4j
-
 public class FileController {
 
     private final FileServiceImpl fileServiceImpl;
@@ -36,10 +35,11 @@ public class FileController {
 
 
     @PostMapping
-    public ResponseEntity<HttpStatus> uploadFile(@RequestParam("file") MultipartFile multipartFile) {
+    public ResponseEntity<ResourceInfoDTO> uploadFile(@RequestParam("file") MultipartFile multipartFile,
+                                                 @RequestParam("path") String path) {
         log.info("Upload file with name: {}", multipartFile.getOriginalFilename());
-        fileServiceImpl.uploadFile(multipartFile.getOriginalFilename(), multipartFile);
-        return ResponseEntity.ok(HttpStatus.OK);
+        ResourceInfoDTO resource = fileServiceImpl.uploadFile(multipartFile.getOriginalFilename(), multipartFile, path);
+        return ResponseEntity.ok(resource);
     }
 
     @GetMapping("/download")
@@ -66,5 +66,12 @@ public class FileController {
     public ResponseEntity<List<ResourceInfoDTO>> search(@RequestParam("query") String query){
         List<ResourceInfoDTO> resourceInfoDTOS = fileServiceImpl.searchResources(query);
         return ResponseEntity.ok().body(resourceInfoDTOS);
+    }
+
+    @GetMapping("/move")
+    public ResponseEntity<ResourceInfoDTO> renameOrRebaseResource(@RequestParam("from") String from,
+                                                                  @RequestParam("to") String to){
+        ResourceInfoDTO movedResource = fileServiceImpl.copyObject(from, to);
+        return ResponseEntity.ok().body(movedResource);
     }
 }

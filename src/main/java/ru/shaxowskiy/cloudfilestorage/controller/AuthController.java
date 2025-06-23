@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,12 +18,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
+import ru.shaxowskiy.cloudfilestorage.dto.AuthResponseDTO;
 import ru.shaxowskiy.cloudfilestorage.dto.SignInRequestDTO;
 import ru.shaxowskiy.cloudfilestorage.dto.SignUpRequestDTO;
-import ru.shaxowskiy.cloudfilestorage.dto.AuthResponseDTO;
 import ru.shaxowskiy.cloudfilestorage.exceptions.UserErrorResponse;
 import ru.shaxowskiy.cloudfilestorage.exceptions.UserNotCreatedException;
 import ru.shaxowskiy.cloudfilestorage.repositories.UserRepository;
+import ru.shaxowskiy.cloudfilestorage.security.JWTUtil;
 import ru.shaxowskiy.cloudfilestorage.service.impl.UserService;
 
 import java.util.List;
@@ -36,18 +38,21 @@ public class AuthController {
     private final UserService userService;
     private final PasswordEncoder passwordEncode;
     private final UserRepository userRepository;
+    private final JWTUtil jwtUtil;
+    private final ModelMapper modelMapper;
 
     @Autowired
-    public AuthController(AuthenticationManager authenticationManager, UserService userService, PasswordEncoder passwordEncode, UserRepository userRepository) {
+    public AuthController(AuthenticationManager authenticationManager, UserService userService, PasswordEncoder passwordEncode, UserRepository userRepository, JWTUtil jwtUtil, ModelMapper modelMapper) {
         this.authenticationManager = authenticationManager;
         this.userService = userService;
         this.passwordEncode = passwordEncode;
         this.userRepository = userRepository;
+        this.jwtUtil = jwtUtil;
+        this.modelMapper = modelMapper;
     }
 
-
     @PostMapping("/sign-up")
-    public ResponseEntity<AuthResponseDTO> registerUser(@Valid @RequestBody SignUpRequestDTO user,
+    public ResponseEntity<String> registerUser(@Valid @RequestBody SignUpRequestDTO user,
                                                         BindingResult bindingResult) {
         log.debug("Received registration request for user: {}", user.getUsername());
 
@@ -62,9 +67,9 @@ public class AuthController {
         }
 
         userService.addUser(user);
-        return new ResponseEntity<>(new AuthResponseDTO(user.getUsername()), HttpStatus.OK);
+        String token = jwtUtil.generateToken(user);
+        return new ResponseEntity<>(token, HttpStatus.OK);
     }
-
     @ExceptionHandler
     public ResponseEntity<UserErrorResponse> handleUserNotCreatedException(UserNotCreatedException e) {
         UserErrorResponse userErrorResponse = new UserErrorResponse();

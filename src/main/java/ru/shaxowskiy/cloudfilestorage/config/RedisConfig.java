@@ -11,8 +11,8 @@ import org.springframework.session.data.redis.config.annotation.web.http.EnableR
 import org.springframework.session.web.context.AbstractHttpSessionApplicationInitializer;
 
 @Configuration
-@EnableRedisHttpSession
-public class RedisConfig extends AbstractHttpSessionApplicationInitializer {
+//@EnableRedisHttpSession
+public class RedisConfig {
 
     private final String host;
     private final Integer port;

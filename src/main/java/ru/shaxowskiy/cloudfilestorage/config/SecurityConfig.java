@@ -16,23 +16,26 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import ru.shaxowskiy.cloudfilestorage.security.JWTFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     private PasswordEncoderConfig passwordEncoderConfig;
-
+    private JWTFilter jwtFilter;
     @Autowired
-    public SecurityConfig(PasswordEncoderConfig passwordEncoderConfig) {
+    public SecurityConfig(PasswordEncoderConfig passwordEncoderConfig, JWTFilter jwtFilter) {
         this.passwordEncoderConfig = passwordEncoderConfig;
+        this.jwtFilter = jwtFilter;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
@@ -44,6 +47,7 @@ public class SecurityConfig {
                         .logoutSuccessHandler((request, response, authentication) -> {
                             response.setStatus(HttpStatus.NO_CONTENT.value());
                         }))
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 

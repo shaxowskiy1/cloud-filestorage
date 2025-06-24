@@ -6,6 +6,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import ru.shaxowskiy.cloudfilestorage.dto.SignInRequestDTO;
 import ru.shaxowskiy.cloudfilestorage.dto.SignUpRequestDTO;
 
 import java.time.ZonedDateTime;
@@ -18,8 +19,18 @@ public class JWTUtil {
     @Value("${jwt_secret}")
     private String secret;
     private final String subject = "User details";
-
-    public String generateToken(SignUpRequestDTO user){
+//
+//    public String generateToken(SignUpRequestDTO user){
+//        Date expirateDate = Date.from(ZonedDateTime.now().plusMinutes(60).toInstant());
+//        return JWT.create()
+//                .withSubject(subject)
+//                .withClaim("username", user.getUsername())
+//                .withIssuedAt(new Date())
+//                .withIssuer(issuer)
+//                .withExpiresAt(expirateDate)
+//                .sign(Algorithm.HMAC256(secret));
+//    }
+    public String generateToken(SignInRequestDTO user){
         Date expirateDate = Date.from(ZonedDateTime.now().plusMinutes(60).toInstant());
         return JWT.create()
                 .withSubject(subject)

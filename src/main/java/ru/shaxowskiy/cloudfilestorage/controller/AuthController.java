@@ -52,7 +52,7 @@ public class AuthController {
     }
 
     @PostMapping("/sign-up")
-    public ResponseEntity<String> registerUser(@Valid @RequestBody SignUpRequestDTO user,
+    public ResponseEntity<AuthResponseDTO> registerUser(@Valid @RequestBody SignUpRequestDTO user,
                                                         BindingResult bindingResult) {
         log.debug("Received registration request for user: {}", user.getUsername());
 
@@ -67,8 +67,7 @@ public class AuthController {
         }
 
         userService.addUser(user);
-        String token = jwtUtil.generateToken(user);
-        return new ResponseEntity<>(token, HttpStatus.OK);
+        return new ResponseEntity<>(new AuthResponseDTO(user.getUsername()), HttpStatus.OK);
     }
     @ExceptionHandler
     public ResponseEntity<UserErrorResponse> handleUserNotCreatedException(UserNotCreatedException e) {
@@ -90,7 +89,8 @@ public class AuthController {
 
             HttpSession session = request.getSession(true);
             session.setAttribute("SPRING_SECURITY_CONTEXT", context);
-            return ResponseEntity.ok(new AuthResponseDTO(requestUser.getUsername()));
+            //return ResponseEntity.ok(new AuthResponseDTO(requestUser.getUsername()));
+            return ResponseEntity.ok(jwtUtil.generateToken(requestUser));
         } catch(AuthenticationException e){
             log.info("Failed sign in {}", e.getMessage());
             return ResponseEntity.status(401).body("Неверные логин или пароль");

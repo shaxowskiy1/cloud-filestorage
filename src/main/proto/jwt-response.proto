@@ -1,0 +1,17 @@
+syntax = "proto3";
+package ru.shaxowskiy.cloudfilestorage;
+option java_package = "ru.shaxowskiy.cloudfilestorage";
+
+service AuthService {
+  rpc ValidateToken (ValidateTokenRequest) returns (ValidateTokenResponse);
+}
+
+message ValidateTokenRequest {
+  string token = 1;
+}
+
+message ValidateTokenResponse {
+  bool is_valid = 1;
+  string username = 2;
+  repeated string roles = 3;
+}
